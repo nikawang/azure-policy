@@ -6,7 +6,7 @@ spec:
   crd:
     spec:
       names:
-        kind: ContainerResouceNotExceed
+        kind: ContainerResourceNotExceed
       validation:
         # Schema for the `parameters` field
         openAPIV3Schema:
