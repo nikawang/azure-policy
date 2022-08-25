@@ -1,0 +1,325 @@
+{
+    "parameters":
+    {
+        "cpu": 1.2
+    },
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+        "creationTimestamp": "2022-08-17T15:22:42Z",
+        "generateName": "kube-proxy-",
+        "labels": {
+            "component": "kube-proxy",
+            "controller-revision-hash": "6fdf67b86",
+            "pod-template-generation": "3",
+            "tier": "node"
+        },
+        "name": "kube-proxy-v4xbt",
+        "namespace": "kube-system",
+        "ownerReferences": [
+            {
+                "apiVersion": "apps/v1",
+                "blockOwnerDeletion": true,
+                "controller": true,
+                "kind": "DaemonSet",
+                "name": "kube-proxy",
+                "uid": "5b041692-873c-4c30-92bd-15a7eda4ac98"
+            }
+        ],
+        "resourceVersion": "6182931",
+        "uid": "b0633592-9b6e-4111-b348-b4de5984c7c8"
+    },
+    "spec": {
+        "affinity": {
+            "nodeAffinity": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                    "nodeSelectorTerms": [
+                        {
+                            "matchFields": [
+                                {
+                                    "key": "metadata.name",
+                                    "operator": "In",
+                                    "values": [
+                                        "aks-agentpool-12506436-vmss000006"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        "containers": [
+            {
+                "command": [
+                    "kube-proxy",
+                    "--conntrack-max-per-core=0",
+                    "--metrics-bind-address=0.0.0.0:10249",
+                    "--kubeconfig=/var/lib/kubelet/kubeconfig",
+                    "--cluster-cidr=10.244.0.0/16",
+                    "--v=3"
+                ],
+                "env": [
+                    {
+                        "name": "KUBERNETES_PORT_443_TCP_ADDR",
+                        "value": "akszone-dns-468ee051.hcp.japaneast.azmk8s.io"
+                    },
+                    {
+                        "name": "KUBERNETES_PORT",
+                        "value": "tcp://akszone-dns-468ee051.hcp.japaneast.azmk8s.io:443"
+                    },
+                    {
+                        "name": "KUBERNETES_PORT_443_TCP",
+                        "value": "tcp://akszone-dns-468ee051.hcp.japaneast.azmk8s.io:443"
+                    },
+                    {
+                        "name": "KUBERNETES_SERVICE_HOST",
+                        "value": "akszone-dns-468ee051.hcp.japaneast.azmk8s.io"
+                    }
+                ],
+                "image": "mcr.microsoft.com/oss/kubernetes/kube-proxy:v1.22.11-hotfix.20220620.2",
+                "imagePullPolicy": "IfNotPresent",
+                "name": "kube-proxy",
+                "resources": {
+                    "requests": {
+                        "cpu": "200m"
+                    }
+                },
+                "securityContext": {
+                    "privileged": true
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "volumeMounts": [
+                    {
+                        "mountPath": "/var/lib/kubelet",
+                        "name": "kubeconfig",
+                        "readOnly": true
+                    },
+                    {
+                        "mountPath": "/etc/kubernetes/certs",
+                        "name": "certificates",
+                        "readOnly": true
+                    },
+                    {
+                        "mountPath": "/run/xtables.lock",
+                        "name": "iptableslock"
+                    },
+                    {
+                        "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                        "name": "kube-api-access-rzbbq",
+                        "readOnly": true
+                    }
+                ]
+            }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "enableServiceLinks": true,
+        "hostNetwork": true,
+        "initContainers": [
+            {
+                "command": [
+                    "/bin/sh",
+                    "-c",
+                    "SYSCTL=/proc/sys/net/netfilter/nf_conntrack_max\necho \"Current net.netfilter.nf_conntrack_max: $(cat $SYSCTL)\"\nDESIRED=$(awk -F= '/net.netfilter.nf_conntrack_max/ {print $2}' /etc/sysctl.d/999-sysctl-aks.conf)\nif [ -z \"$DESIRED\" ]; then\n  DESIRED=$((32768*$(nproc)))\n  if [ $DESIRED -lt 131072 ]; then\n    DESIRED=131072\n  fi\n\n  echo \"AKS custom config for net.netfilter.nf_conntrack_max not set.\"\n  echo \"Setting nf_conntrack_max to $DESIRED (32768 * $(nproc) cores, minimum 131072).\"\n  echo $DESIRED \u003e $SYSCTL\nelse\n  echo \"AKS custom config for net.netfilter.nf_conntrack_max set to $DESIRED.\"\n  echo \"Setting nf_conntrack_max to $DESIRED.\"\n  echo $DESIRED \u003e $SYSCTL\nfi\n"
+                ],
+                "image": "mcr.microsoft.com/oss/kubernetes/kube-proxy:v1.22.11-hotfix.20220620.2",
+                "imagePullPolicy": "IfNotPresent",
+                "name": "kube-proxy-setctmax",
+                "resources": {
+                    "limits": {
+                        "cpu": "100m",
+                        "memory": "256Mi"
+                    },
+                    "requests": {
+                        "cpu": "100",
+                        "memory": "256Mi"
+                    }
+                },
+                "securityContext": {
+                    "privileged": true
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "volumeMounts": [
+                    {
+                        "mountPath": "/etc/sysctl.d",
+                        "name": "sysctls"
+                    },
+                    {
+                        "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                        "name": "kube-api-access-rzbbq",
+                        "readOnly": true
+                    }
+                ]
+            }
+        ],
+        "nodeName": "aks-agentpool-12506436-vmss000006",
+        "preemptionPolicy": "PreemptLowerPriority",
+        "priority": 2000001000,
+        "priorityClassName": "system-node-critical",
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {},
+        "serviceAccount": "kube-proxy",
+        "serviceAccountName": "kube-proxy",
+        "terminationGracePeriodSeconds": 30,
+        "tolerations": [
+            {
+                "key": "CriticalAddonsOnly",
+                "operator": "Exists"
+            },
+            {
+                "effect": "NoExecute",
+                "operator": "Exists"
+            },
+            {
+                "effect": "NoSchedule",
+                "operator": "Exists"
+            }
+        ],
+        "volumes": [
+            {
+                "hostPath": {
+                    "path": "/var/lib/kubelet",
+                    "type": ""
+                },
+                "name": "kubeconfig"
+            },
+            {
+                "hostPath": {
+                    "path": "/etc/kubernetes/certs",
+                    "type": ""
+                },
+                "name": "certificates"
+            },
+            {
+                "hostPath": {
+                    "path": "/run/xtables.lock",
+                    "type": "FileOrCreate"
+                },
+                "name": "iptableslock"
+            },
+            {
+                "hostPath": {
+                    "path": "/etc/sysctl.d",
+                    "type": "Directory"
+                },
+                "name": "sysctls"
+            },
+            {
+                "name": "kube-api-access-rzbbq",
+                "projected": {
+                    "defaultMode": 420,
+                    "sources": [
+                        {
+                            "serviceAccountToken": {
+                                "expirationSeconds": 3607,
+                                "path": "token"
+                            }
+                        },
+                        {
+                            "configMap": {
+                                "items": [
+                                    {
+                                        "key": "ca.crt",
+                                        "path": "ca.crt"
+                                    }
+                                ],
+                                "name": "kube-root-ca.crt"
+                            }
+                        },
+                        {
+                            "downwardAPI": {
+                                "items": [
+                                    {
+                                        "fieldRef": {
+                                            "apiVersion": "v1",
+                                            "fieldPath": "metadata.namespace"
+                                        },
+                                        "path": "namespace"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "status": {
+        "conditions": [
+            {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2022-08-17T15:22:44Z",
+                "status": "True",
+                "type": "Initialized"
+            },
+            {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2022-08-17T15:22:45Z",
+                "status": "True",
+                "type": "Ready"
+            },
+            {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2022-08-17T15:22:45Z",
+                "status": "True",
+                "type": "ContainersReady"
+            },
+            {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2022-08-17T15:22:42Z",
+                "status": "True",
+                "type": "PodScheduled"
+            }
+        ],
+        "containerStatuses": [
+            {
+                "containerID": "containerd://39b11636c270bc35f799553e31916d06800c99cbde5feca4101a00b473aadf93",
+                "image": "mcr.microsoft.com/oss/kubernetes/kube-proxy:v1.22.11-hotfix.20220620.2",
+                "imageID": "mcr.microsoft.com/oss/kubernetes/kube-proxy@sha256:b0f47994f46752853f7e282282b7afbbd5825f81112e0c5e98e816078de484ba",
+                "lastState": {},
+                "name": "kube-proxy",
+                "ready": true,
+                "restartCount": 0,
+                "started": true,
+                "state": {
+                    "running": {
+                        "startedAt": "2022-08-17T15:22:44Z"
+                    }
+                }
+            }
+        ],
+        "hostIP": "10.224.0.9",
+        "initContainerStatuses": [
+            {
+                "containerID": "containerd://e72577b8563f175dcd5fb99d33bfe7005df78ce38ed4cd3e74aeda0689b79735",
+                "image": "mcr.microsoft.com/oss/kubernetes/kube-proxy:v1.22.11-hotfix.20220620.2",
+                "imageID": "mcr.microsoft.com/oss/kubernetes/kube-proxy@sha256:b0f47994f46752853f7e282282b7afbbd5825f81112e0c5e98e816078de484ba",
+                "lastState": {},
+                "name": "kube-proxy-setctmax",
+                "ready": true,
+                "restartCount": 0,
+                "state": {
+                    "terminated": {
+                        "containerID": "containerd://e72577b8563f175dcd5fb99d33bfe7005df78ce38ed4cd3e74aeda0689b79735",
+                        "exitCode": 0,
+                        "finishedAt": "2022-08-17T15:22:43Z",
+                        "reason": "Completed",
+                        "startedAt": "2022-08-17T15:22:43Z"
+                    }
+                }
+            }
+        ],
+        "phase": "Running",
+        "podIP": "10.224.0.9",
+        "podIPs": [
+            {
+                "ip": "10.224.0.9"
+            }
+        ],
+        "qosClass": "Burstable",
+        "startTime": "2022-08-17T15:22:42Z"
+    }
+}
