@@ -29,9 +29,9 @@ canonify_cpu(orig) = new {
 
 
 input_containers[c] {
-   c := input.spec.containers[_]
+   c := input.review.object.spec.containers[_]
 }
 
 input_containers[c] {
-   c := input.spec.initContainers[_]
+   c := input.review.object.spec.initContainers[_]
 }
