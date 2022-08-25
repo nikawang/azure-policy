@@ -21,10 +21,10 @@ spec:
         violation[{"msg": msg}] {
           general_violation[{"msg": msg, "field": "containers"}]
         }
+        
         violation[{"msg": msg}] {
           general_violation[{"msg": msg, "field": "initContainers"}]
         }
-
 
         general_violation[{"msg": msg, "field": field}] {
           container := input.review.object.spec[field][_]
