@@ -19,7 +19,7 @@ spec:
         package containerresourcenotexceed
 
         violation[{"msg": msg}] {
-          specified_cpu :=  to_number(input.parameters.cpu)*1000
+          specified_cpu :=  to_number(input.parameters.CPU)*1000
           container := input_containers[_]
           requested_cpu := container.resources.requests.cpu
           cpu := canonify_cpu(requested_cpu)
